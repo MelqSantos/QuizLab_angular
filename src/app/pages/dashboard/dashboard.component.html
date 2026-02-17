@@ -134,7 +134,7 @@
             <mat-card class="quiz-card">
               <mat-card-header>
                 <mat-card-title>{{ quiz.title }}</mat-card-title>
-                <mat-card-subtitle>{{ quiz.className }}</mat-card-subtitle>
+                <mat-card-subtitle>{{ quiz.class_name }}</mat-card-subtitle>
               </mat-card-header>
               
               <mat-card-content class="quiz-content">
@@ -143,21 +143,25 @@
                     <mat-icon>topic</mat-icon>
                     <span>{{ quiz.theme }}</span>
                   </div>
-                  @if (quiz.createdAt) {
+                  @if (quiz.created_at) {
                     <div class="info-item">
                       <mat-icon>calendar_today</mat-icon>
-                      <span>{{ quiz.createdAt | date: 'short' }}</span>
+                      <span>{{ quiz.created_at | date: 'dd/MM/yyyy' }}</span>
                     </div>
                   }
+                  <div class="info-item">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ quiz.author }}</span>
+                  </div>
                 </div>
               </mat-card-content>
 
               <mat-card-actions>
-                <button mat-button color="primary">
+                <button type="button" mat-button color="primary" (click)="openQuestions(quiz.id, 'view')">
                   <mat-icon>visibility</mat-icon>
                   Ver
                 </button>
-                <button mat-button color="accent">
+                <button type="button" mat-button color="accent" (click)="openQuestions(quiz.id, 'edit')">
                   <mat-icon>edit</mat-icon>
                   Editar
                 </button>
@@ -197,7 +201,7 @@
             <mat-card class="quiz-card student-card">
               <mat-card-header>
                 <mat-card-title>{{ quiz.title }}</mat-card-title>
-                <mat-card-subtitle>{{ quiz.className }}</mat-card-subtitle>
+                <mat-card-subtitle>{{ quiz.class_name }}</mat-card-subtitle>
               </mat-card-header>
               
               <mat-card-content class="quiz-content">
@@ -206,12 +210,16 @@
                     <mat-icon>topic</mat-icon>
                     <span>{{ quiz.theme }}</span>
                   </div>
-                  @if (quiz.createdAt) {
+                  @if (quiz.created_at) {
                     <div class="info-item">
                       <mat-icon>calendar_today</mat-icon>
-                      <span>{{ quiz.createdAt | date: 'short' }}</span>
+                      <span>{{ quiz.created_at | date: 'dd/MM/yyyy' }}</span>
                     </div>
                   }
+                  <div class="info-item">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ quiz.author }}</span>
+                  </div>
                 </div>
               </mat-card-content>
 

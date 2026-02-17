@@ -1,0 +1,95 @@
+<app-toolbar></app-toolbar>
+
+<div class="questions-container">
+  <div class="header">
+    <h1>Gerenciar Perguntas (máx. 5)</h1>
+    <div class="actions">
+      <button mat-stroked-button color="primary" (click)="addQuestion()" [disabled]="questionsArray.length >= maxQuestions || isReadOnly()">
+        <mat-icon>add</mat-icon>
+        Adicionar Pergunta
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="form">
+    <div *ngIf="noQuestions()" class="empty-state-questions">
+      <mat-card class="empty-card">
+        <mat-card-content>
+          <h2>Nenhuma pergunta cadastrada</h2>
+          <p>Este quiz ainda não possui perguntas cadastradas.</p>
+          <div class="empty-actions">
+            <button mat-stroked-button color="primary" (click)="goBack()">Voltar</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div *ngIf="!noQuestions()">
+    <div class="questions-list">
+      <ng-container *ngFor="let q of questionsArray.controls; let i = index">
+        <mat-card class="question-card">
+            <mat-card-header>
+            <mat-card-title>Pergunta {{ i + 1 }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content [formGroup]="getQuestionGroup(i)">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Enunciado</mat-label>
+              <input matInput formControlName="statement" placeholder="Ex: Quanto é 1 + 2?" />
+            </mat-form-field>
+
+            <div class="meta-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Pontos</mat-label>
+                <input matInput type="number" formControlName="points" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Penalidade</mat-label>
+                <input matInput type="number" formControlName="penalty" />
+              </mat-form-field>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div formArrayName="alternatives" class="alternatives">
+              <ng-container *ngFor="let a of getAlternativesArray(i).controls; let j = index">
+                <div class="alternative-row" [formGroupName]="j" [class.correct]="a.get('is_correct')?.value">
+                  <mat-form-field appearance="outline" class="alt-input">
+                    <mat-label>Alternativa {{ j + 1 }}</mat-label>
+                    <input matInput formControlName="text" />
+                  </mat-form-field>
+                  <button mat-icon-button (click)="setCorrectAlternative(i, j)" type="button" [disabled]="isReadOnly()" [attr.aria-label]="'Marcar correta ' + (j+1)" [attr.aria-pressed]="a.get('is_correct')?.value" [color]="a.get('is_correct')?.value ? 'primary' : null">
+                    <mat-icon>{{ a.get('is_correct')?.value ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="removeAlternative(i, j)" type="button" [disabled]="getAlternativesArray(i).length <= 2 || isReadOnly()">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </ng-container>
+            </div>
+
+            <div class="alt-actions">
+              <button mat-stroked-button (click)="addAlternative(i)" type="button" [disabled]="getAlternativesArray(i).length >= 5 || isReadOnly()">
+                <mat-icon>add</mat-icon>
+                Adicionar Alternativa
+              </button>
+              <mat-card-actions>
+                <button mat-stroked-button (click)="removeQuestion(i)" type="button" [disabled]="isReadOnly()">
+                    <mat-icon>delete</mat-icon>
+                    Remover Pergunta</button>
+              </mat-card-actions>
+            </div>
+          </mat-card-content>
+          
+        </mat-card>
+      </ng-container>
+    </div>
+
+    <div class="save-actions">
+      <button mat-raised-button color="primary" (click)="saveAll()" [disabled]="loading() || isReadOnly()">
+        <mat-icon>save</mat-icon>
+        Salvar Perguntas
+      </button>
+      <button mat-button (click)="goBack()" type="button">Cancelar</button>
+    </div>
+    </div>
+  </form>
+</div>

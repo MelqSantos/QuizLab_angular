@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { isActive, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -132,9 +132,10 @@ export class DashboardComponent implements OnInit {
 
     const newQuiz: Quiz = {
       title: title!,
-      className: className!,
+      class_name: className!,
       theme: theme!,
-      createdBy: this.userId
+      is_active: true,
+      created_by: this.userId
     };
 
     this.quizService.createQuiz(newQuiz).subscribe({
@@ -169,5 +170,11 @@ export class DashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  openQuestions(quizId: string | undefined, mode: 'view' | 'edit' = 'edit') {
+    if (!quizId) return;
+    // navigate using path segments and pass mode as query param
+    this.router.navigate(['/quiz', quizId, 'questions'], { queryParams: { mode } });
   }
 }

@@ -1,10 +1,238 @@
-<mat-toolbar color="primary">
-  <span>QuizLab</span>
-  <span class="spacer"></span>
-  <button mat-button (click)="logout()">Sair</button>
-</mat-toolbar>
+<app-toolbar></app-toolbar>
 
 <div class="dashboard-container">
-  <h1>Bem-vindo ao QuizLab 🚀</h1>
-  <p>Sua plataforma de quizzes interativos.</p>
+  <!-- Teacher Section -->
+  @if (isTeacher) {
+    <div class="teacher-section">
+      <div class="section-header">
+        <h1>
+          <mat-icon>school</mat-icon>
+          Quizzes
+        </h1>
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="toggleCreateForm()"
+          class="create-quiz-btn">
+          <mat-icon>add</mat-icon>
+          Novo Quiz
+        </button>
+      </div>
+
+      <!-- Create Quiz Form -->
+      @if (showCreateForm()) {
+        <mat-card class="create-form-card">
+          <mat-card-header>
+            <mat-card-title>Criar Novo Quiz</mat-card-title>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="createQuiz()" class="quiz-form">
+              <!-- Title Field -->
+              <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                <mat-label>
+                  <mat-icon class="input-icon">title</mat-icon>
+                  Título
+                </mat-label>
+                <input 
+                  matInput 
+                  type="text"
+                  formControlName="title"
+                  placeholder="Ex: Revisão de Matemática"
+                  required>
+                @if (title?.hasError('required') && title?.touched) {
+                  <mat-error>Título é obrigatório</mat-error>
+                }
+                @if (title?.hasError('minlength') && title?.touched) {
+                  <mat-error>Título deve ter no mínimo 3 caracteres</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Class Name Field -->
+              <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                <mat-label>
+                  <mat-icon class="input-icon">groups</mat-icon>
+                  Turma
+                </mat-label>
+                <input 
+                  matInput 
+                  type="text"
+                  formControlName="className"
+                  placeholder="Ex: 5º Ano C"
+                  required>
+                @if (className?.hasError('required') && className?.touched) {
+                  <mat-error>Turma é obrigatória</mat-error>
+                }
+                @if (className?.hasError('minlength') && className?.touched) {
+                  <mat-error>Turma deve ter no mínimo 2 caracteres</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Theme Field -->
+              <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+                <mat-label>
+                  <mat-icon class="input-icon">topic</mat-icon>
+                  Tema
+                </mat-label>
+                <input 
+                  matInput 
+                  type="text"
+                  formControlName="theme"
+                  placeholder="Ex: Soma"
+                  required>
+                @if (theme?.hasError('required') && theme?.touched) {
+                  <mat-error>Tema é obrigatório</mat-error>
+                }
+                @if (theme?.hasError('minlength') && theme?.touched) {
+                  <mat-error>Tema deve ter no mínimo 2 caracteres</mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Error Alert -->
+              @if (errorMessage()) {
+                <div class="error-alert">
+                  <mat-icon class="error-icon">error_outline</mat-icon>
+                  <span>{{ errorMessage() }}</span>
+                </div>
+              }
+
+              <!-- Form Actions -->
+              <div class="form-actions">
+                <button 
+                  type="submit"
+                  mat-raised-button 
+                  color="primary"
+                  [disabled]="form.invalid || loading()"
+                  class="submit-btn">
+                  @if (loading()) {
+                    <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+                    <span>Criando...</span>
+                  } @else {
+                    <div style="display: flex; align-items: center;">
+                      <mat-icon>check</mat-icon>
+                      <span>Criar Quiz</span>
+                    </div>
+                  }
+                </button>
+                <button 
+                  type="button"
+                  mat-stroked-button
+                  (click)="toggleCreateForm()"
+                  [disabled]="loading()"
+                  class="cancel-btn">
+                  <mat-icon>close</mat-icon>
+                  <span>Cancelar</span>
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <!-- Quizzes List -->
+      <div class="quizzes-grid">
+        @if (quizzes().length === 0) {
+          <div class="empty-state">
+            <mat-icon class="empty-icon">quiz</mat-icon>
+            <h2>Nenhum Quiz Criado</h2>
+            <p>Clique no botão "Novo Quiz" para começar</p>
+          </div>
+        } @else {
+          @for (quiz of quizzes(); track quiz.id) {
+            <mat-card class="quiz-card">
+              <mat-card-header>
+                <mat-card-title>{{ quiz.title }}</mat-card-title>
+                <mat-card-subtitle>{{ quiz.className }}</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content class="quiz-content">
+                <div class="quiz-info">
+                  <div class="info-item">
+                    <mat-icon>topic</mat-icon>
+                    <span>{{ quiz.theme }}</span>
+                  </div>
+                  @if (quiz.createdAt) {
+                    <div class="info-item">
+                      <mat-icon>calendar_today</mat-icon>
+                      <span>{{ quiz.createdAt | date: 'short' }}</span>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button mat-button color="primary">
+                  <mat-icon>visibility</mat-icon>
+                  Ver
+                </button>
+                <button mat-button color="accent">
+                  <mat-icon>edit</mat-icon>
+                  Editar
+                </button>
+                <button 
+                  mat-button 
+                  color="warn"
+                  (click)="deleteQuiz(quiz.id)"
+                  [disabled]="loading()">
+                  <mat-icon>delete</mat-icon>
+                  Deletar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          }
+        }
+      </div>
+    </div>
+  } @else {
+    <!-- Student Section -->
+    <div class="student-section">
+      <div class="section-header">
+        <h1>
+          <mat-icon>assignment</mat-icon>
+          Quizzes Disponíveis
+        </h1>
+      </div>
+
+      <div class="quizzes-grid">
+        @if (quizzes().length === 0) {
+          <div class="empty-state">
+            <mat-icon class="empty-icon">quiz</mat-icon>
+            <h2>Nenhum Quiz Disponível</h2>
+            <p>Volte mais tarde para fazer os quizzes</p>
+          </div>
+        } @else {
+          @for (quiz of quizzes(); track quiz.id) {
+            <mat-card class="quiz-card student-card">
+              <mat-card-header>
+                <mat-card-title>{{ quiz.title }}</mat-card-title>
+                <mat-card-subtitle>{{ quiz.className }}</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content class="quiz-content">
+                <div class="quiz-info">
+                  <div class="info-item">
+                    <mat-icon>topic</mat-icon>
+                    <span>{{ quiz.theme }}</span>
+                  </div>
+                  @if (quiz.createdAt) {
+                    <div class="info-item">
+                      <mat-icon>calendar_today</mat-icon>
+                      <span>{{ quiz.createdAt | date: 'short' }}</span>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button mat-raised-button color="primary" class="start-btn">
+                  <mat-icon>play_arrow</mat-icon>
+                  Começar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          }
+        }
+      </div>
+    </div>
+  }
 </div>

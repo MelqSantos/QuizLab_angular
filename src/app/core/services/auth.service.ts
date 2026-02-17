@@ -4,6 +4,12 @@ import { Observable, tap, catchError, throwError } from 'rxjs';
 
 interface LoginResponse {
   token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'ALUNO' | 'PROFESSOR';
+  };
 }
 
 interface SignupRequest {
@@ -31,6 +37,9 @@ export class AuthService {
 
       tap(response => {
         document.cookie = `token=${response.token}; path=/;`;
+        document.cookie = `userId=${response.user.id}; path=/;`;
+        document.cookie = `role=${response.user.role}; path=/;`;
+        document.cookie = `name=${response.user.name}; path=/;`;
       }),
 
       catchError((error: HttpErrorResponse) => {
@@ -60,6 +69,9 @@ export class AuthService {
 
       tap(response => {
         document.cookie = `token=${response.token}; path=/;`;
+        document.cookie = `userId=${response.user.id}; path=/;`;
+        document.cookie = `role=${response.user.role}; path=/;`;
+        document.cookie = `name=${response.user.name}; path=/;`;
       }),
 
       catchError((error: HttpErrorResponse) => {
@@ -92,7 +104,33 @@ export class AuthService {
     return match ? match[2] : null;
   }
 
+  getUserId(): string | null {
+    const match = document.cookie.match(/(^| )userId=([^;]+)/);
+    return match ? match[2] : null;
+  }
+
+  getRole(): string | null {
+    const match = document.cookie.match(/(^| )role=([^;]+)/);
+    return match ? match[2] : null;
+  }
+
+  getName(): string | null {
+    const match = document.cookie.match(/(^| )name=([^;]+)/);
+    return match ? match[2] : null;
+  }
+
+  isTeacher(): boolean {
+    return this.getRole() === 'PROFESSOR';
+  }
+
+  isStudent(): boolean {
+    return this.getRole() === 'ALUNO';
+  }
+
   logout() {
     document.cookie = 'token=; Max-Age=0; path=/;';
+    document.cookie = 'userId=; Max-Age=0; path=/;';
+    document.cookie = 'role=; Max-Age=0; path=/;';
+    document.cookie = 'name=; Max-Age=0; path=/;';
   }
 }

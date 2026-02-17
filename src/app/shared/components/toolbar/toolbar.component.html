@@ -1,0 +1,82 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <div class="toolbar-content">
+    <!-- Logo and Title -->
+    <div class="toolbar-start">
+      <button 
+        mat-icon-button 
+        routerLink="/dashboard"
+        class="logo-btn"
+        matTooltip="Dashboard">
+        <mat-icon class="logo-icon">quiz</mat-icon>
+      </button>
+      <span class="app-title">QuizLab</span>
+    </div>
+
+    <!-- Navigation and User Menu -->
+    <div class="toolbar-end">
+      <!-- Teacher Navigation -->
+      @if (isTeacher) {
+        <button 
+          mat-button
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          class="nav-button">
+          <mat-icon>assignment</mat-icon>
+          <span>Quizzes</span>
+        </button>
+      }
+
+      <!-- Student Navigation -->
+      @if (!isTeacher) {
+        <button 
+          mat-button
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          class="nav-button">
+          <mat-icon>play_arrow</mat-icon>
+          <span>Quizzes</span>
+        </button>
+      }
+
+      <!-- Ranking (for both) -->
+      <button 
+        mat-button
+        routerLink="/ranking"
+        routerLinkActive="active"
+        class="nav-button">
+        <mat-icon>leaderboard</mat-icon>
+        <span>Ranking</span>
+      </button>
+
+      <!-- User Menu -->
+      <button 
+        mat-icon-button 
+        [matMenuTriggerFor]="userMenu"
+        class="user-menu-btn"
+        matTooltip="Menu do usuário">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" class="user-menu">
+        <button mat-menu-item disabled class="user-info">
+          <mat-icon>person</mat-icon>
+          <span>{{ userName }}</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item>
+          <mat-icon>settings</mat-icon>
+          <span>Configurações</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>help</mat-icon>
+          <span>Ajuda</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sair</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+</mat-toolbar>

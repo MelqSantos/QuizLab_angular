@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/services/auth.service';
 import { QuizService, Quiz } from '../../core/services/quiz.service';
+import { ToasterService } from '../../shared/services/toaster.service';
 import { ToolbarComponent } from '../../shared/components/toolbar/toolbar.component';
 
 @Component({
@@ -38,7 +39,6 @@ import { ToolbarComponent } from '../../shared/components/toolbar/toolbar.compon
 })
 export class DashboardComponent implements OnInit {
   loading = signal(false);
-  errorMessage = signal('');
   showCreateForm = signal(false);
   quizzes = signal<Quiz[]>([]);
   isTeacher: boolean = false;
@@ -54,7 +54,8 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private quizService: QuizService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toaster: ToasterService
   ) {}
 
   ngOnInit() {
@@ -119,7 +120,6 @@ export class DashboardComponent implements OnInit {
     this.showCreateForm.update(value => !value);
     if (this.showCreateForm()) {
       this.form.reset();
-      this.errorMessage.set('');
     }
   }
 
@@ -127,7 +127,6 @@ export class DashboardComponent implements OnInit {
     if (this.form.invalid || !this.userId) return;
 
     this.loading.set(true);
-    this.errorMessage.set('');
 
     const { title, className, theme } = this.form.value;
 
@@ -144,9 +143,10 @@ export class DashboardComponent implements OnInit {
         this.showCreateForm.set(false);
         this.form.reset();
         this.loading.set(false);
+        this.toaster.success('Quiz criado com sucesso!');
       },
       error: (err) => {
-        this.errorMessage.set(err.message || 'Erro ao criar quiz');
+        this.toaster.error(err.message || 'Erro ao criar quiz');
         this.loading.set(false);
       }
     });
@@ -162,8 +162,10 @@ export class DashboardComponent implements OnInit {
       next: () => {
         this.quizzes.update(quizzes => quizzes.filter(q => q.id !== quizId));
         this.loading.set(false);
+        this.toaster.success('Quiz deletado com sucesso!');
       },
-      error: () => {
+      error: (err) => {
+        this.toaster.error('Erro ao deletar quiz');
         this.loading.set(false);
       }
     });

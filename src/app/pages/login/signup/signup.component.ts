@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToasterService } from '../../../shared/services/toaster.service';
 
 // Custom validator for matching passwords
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -46,7 +47,6 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 })
 export class SignupComponent {
   loading = signal(false);
-  errorMessage = signal('');
   hidePassword = signal(true);
   hideConfirmPassword = signal(true);
 
@@ -69,7 +69,8 @@ export class SignupComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toaster: ToasterService
   ) {}
 
   get name() {
@@ -104,7 +105,6 @@ export class SignupComponent {
     if (this.form.invalid) return;
 
     this.loading.set(true);
-    this.errorMessage.set('');
 
     const { name, email, password, role } = this.form.value;
 
@@ -115,10 +115,11 @@ export class SignupComponent {
       role: role as 'ALUNO' | 'PROFESSOR'
     }).subscribe({
       next: () => {
+        this.toaster.success('Conta criada com sucesso!');
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.message || 'Erro ao criar conta. Tente novamente.');
+        this.toaster.error(err.message || 'Erro ao criar conta. Tente novamente.');
         this.loading.set(false);
       }
     });

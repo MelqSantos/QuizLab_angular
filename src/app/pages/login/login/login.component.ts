@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToasterService } from '../../../shared/services/toaster.service';
 
 @Component({
   selector: 'app-login',
@@ -35,7 +36,6 @@ import { AuthService } from '../../../core/services/auth.service';
 
 export class LoginComponent {
   loading = signal(false);
-  errorMessage = signal('');
   hidePassword = signal(true);
 
   form = this.fb.group({
@@ -46,7 +46,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toaster: ToasterService
   ) {}
 
   get email() {
@@ -65,16 +66,16 @@ export class LoginComponent {
     if (this.form.invalid) return;
 
     this.loading.set(true);
-    this.errorMessage.set('');
 
     const { email, password } = this.form.value;
 
     this.authService.login(email!, password!).subscribe({
       next: () => {
+        this.toaster.success('Login realizado com sucesso!');
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.message || 'Erro ao fazer login. Tente novamente.');
+        this.toaster.error(err.message || 'Erro ao fazer login. Tente novamente.');
         this.loading.set(false);
       }
     });

@@ -1,6 +1,7 @@
 {
   "name": "quiz-lab",
   "version": "1.0.0",
+  "author": "Melqui Santos",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

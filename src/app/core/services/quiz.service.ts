@@ -1,3 +1,22 @@
+export interface QuizFilter {
+    title?: string;
+    class_name?: string;
+    theme?: string;
+    is_active?: boolean;
+    author?: string;
+}
+
+// Existing interfaces
+export interface Quiz {
+    id?: string;
+    title: string;
+    class_name: string;
+    theme: string;
+    author?: string;
+    is_active?: boolean;
+    created_by: string;
+    created_at?: Date;
+}
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
@@ -8,12 +27,13 @@ export interface Quiz {
     class_name: string;
     theme: string;
     author?: string;
-    is_active: boolean;
+    is_active?: boolean;
     created_by: string;
     created_at?: Date;
 }
 
 export interface Alternative {
+    id?: string;
     text: string;
     is_correct: boolean;
 }
@@ -26,6 +46,36 @@ export interface Question {
     alternatives: Alternative[];
 }
 
+export interface Answer {
+    questionId: string;
+    alternativeId: string;
+    alternativeText: string;
+}
+
+export interface AnswerResult {
+    questionId: string;
+    alternativeId: string;
+    alternativeText: string;
+    correct: boolean;
+    scoreChange: number;
+}
+
+export interface AnswerError {
+    questionId: string;
+    alternativeId: string;
+    error: string;
+    status: string;
+}
+
+export interface SubmitQuizResult {
+    totalScoreChange: number;
+    successCount: number;
+    errorCount: number;
+    answers: AnswerResult[];
+    errors?: AnswerError[];
+}
+
+
 @Injectable({
     providedIn: 'root'
 })
@@ -36,7 +86,16 @@ export class QuizService {
     constructor(private http: HttpClient) { }
 
     createQuiz(quiz: Quiz): Observable<Quiz> {
-        return this.http.post<Quiz>(`${this.API}`, quiz).pipe(
+        // normalize payload keys to match backend expectations (camelCase for some fields)
+        const payload = {
+            title: quiz.title,
+            className: (quiz as any).className ?? (quiz as any).class_name,
+            theme: quiz.theme,
+            is_active: (quiz as any).is_active ?? true,
+            createdBy: (quiz as any).createdBy ?? (quiz as any).created_by
+        };
+
+        return this.http.post<Quiz>(`${this.API}`, payload).pipe(
             catchError((error: HttpErrorResponse) => {
                 let errorMessage = 'Erro ao criar quiz.';
 
@@ -63,7 +122,7 @@ export class QuizService {
     }
 
     getQuizzesByTeacher(userId: string): Observable<Quiz[]> {
-        return this.http.get<Quiz[]>(`${this.API}`).pipe(
+        return this.http.get<Quiz[]>(`${this.API}?createdBy=${userId}`).pipe(
             catchError((error: HttpErrorResponse) => {
                 let errorMessage = 'Erro ao buscar quizzes.';
 
@@ -145,6 +204,41 @@ export class QuizService {
                 }
 
                 console.error('Save questions error:', error);
+                return throwError(() => ({ message: errorMessage, error }));
+            })
+        );
+    }
+
+    joinQuiz(quizId: string): Observable<{ sessionId: string }> {
+        return this.http.post<{ sessionId: string }>(`${this.API}/${quizId}/join`, {}).pipe(
+            catchError((error: HttpErrorResponse) => {
+                let errorMessage = 'Erro ao participar do quiz.';
+
+                if (error.status === 0) {
+                    errorMessage = 'Não foi possível conectar ao servidor.';
+                }
+
+                if (error.status === 404) {
+                    errorMessage = 'Quiz não encontrado.';
+                }
+
+                console.error('Join quiz error:', error);
+                return throwError(() => ({ message: errorMessage, error }));
+            })
+        );
+    }
+
+    submitAnswers(quizId: string, answers: Answer[]): Observable<SubmitQuizResult> {
+        const payload = { answers };
+        return this.http.post<SubmitQuizResult>(`${this.API}/${quizId}/answers`, payload).pipe(
+            catchError((error: HttpErrorResponse) => {
+                let errorMessage = 'Erro ao submeter respostas.';
+
+                if (error.status === 0) {
+                    errorMessage = 'Não foi possível conectar ao servidor.';
+                }
+
+                console.error('Submit answers error:', error);
                 return throwError(() => ({ message: errorMessage, error }));
             })
         );

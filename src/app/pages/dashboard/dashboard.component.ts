@@ -177,4 +177,9 @@ export class DashboardComponent implements OnInit {
     // navigate using path segments and pass mode as query param
     this.router.navigate(['/quiz', quizId, 'questions'], { queryParams: { mode } });
   }
+
+  playQuiz(quizId: string | undefined) {
+    if (!quizId) return;
+    this.router.navigate(['/quiz', quizId, 'play']);
+  }
 }

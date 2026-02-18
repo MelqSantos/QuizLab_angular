@@ -1,0 +1,110 @@
+<app-toolbar></app-toolbar>
+
+<div class="quiz-play-container">
+  <div *ngIf="!quizCompleted()">
+    <!-- Quiz em progresso -->
+    <div class="quiz-header">
+      <h1>{{ quizTitle }}</h1>
+      <div class="progress-info">
+        <span class="question-counter">Pergunta {{ playState().currentQuestionIndex + 1 }} de {{ questions().length }}</span>
+      </div>
+    </div>
+
+    <mat-progress-bar mode="determinate" [value]="progressPercentage()"></mat-progress-bar>
+
+    <div class="quiz-content" *ngIf="currentQuestion">
+      <mat-card class="question-card" [class.show-result]="playState().showResult">
+        <mat-card-content>
+          <h2 class="question-statement">{{ currentQuestion.statement }}</h2>
+
+          <div class="alternatives">
+            <div *ngFor="let alt of currentQuestion.alternatives" class="alternative">
+              <button
+                [class.selected]="playState().answers[currentQuestion.id!]?.alternativeText === alt.text"
+                [class.correct]="playState().showResult && alt.is_correct"
+                [class.incorrect]="playState().showResult && !alt.is_correct && playState().answers[currentQuestion.id!]?.alternativeText === alt.text"
+                (click)="selectAnswer(alt.id || '', alt.text)"
+                [disabled]="playState().showResult"
+              >
+                <span class="alternative-text">{{ alt.text }}</span>
+                <mat-icon *ngIf="playState().showResult && alt.is_correct" class="icon-correct">check_circle</mat-icon>
+                <mat-icon *ngIf="playState().showResult && !alt.is_correct && playState().answers[currentQuestion.id!]?.alternativeText === alt.text" class="icon-incorrect">cancel</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Animation feedback -->
+          <div *ngIf="playState().showResult" [class]="'result-feedback ' + playState().resultAnimationState">
+            <mat-icon *ngIf="playState().resultAnimationState === 'correct'" class="feedback-icon correct">check_circle</mat-icon>
+            <mat-icon *ngIf="playState().resultAnimationState === 'incorrect'" class="feedback-icon incorrect">cancel</mat-icon>
+            <p *ngIf="playState().resultAnimationState === 'correct'">Acertou!</p>
+            <p *ngIf="playState().resultAnimationState === 'incorrect'">Incorreto</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="question-info">
+        <div class="info-item">
+          <mat-icon>star</mat-icon>
+          <span>{{ currentQuestion.points }} pontos</span>
+        </div>
+        <div class="info-item" *ngIf="currentQuestion.penalty > 0">
+          <mat-icon>remove_circle</mat-icon>
+          <span>-{{ currentQuestion.penalty }} por erro</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button mat-stroked-button (click)="goBack()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Quiz completed -->
+  <div *ngIf="quizCompleted() && finalResult()" class="quiz-results">
+    <mat-card class="results-card">
+      <mat-card-content>
+        <div class="result-header">
+          <mat-icon class="result-icon">check_circle</mat-icon>
+          <h1>Quiz Finalizado!</h1>
+        </div>
+
+        <div class="result-stats">
+          <div class="stat">
+            <span class="label">Pontuação Final</span>
+            <span class="value">{{ finalResult()!.totalScoreChange }} pontos</span>
+          </div>
+          <div class="stat">
+            <span class="label">Acertos</span>
+            <span class="value">{{ getCorrectAnswersCount() }} / {{ getTotalAnswersCount() }}</span>
+          </div>
+          <div class="stat">
+            <span class="label">Percentual</span>
+            <span class="value">{{ getPercentage().toFixed(0) }}%</span>
+          </div>
+        </div>
+
+        <!-- Errors section if there are any -->
+        <div *ngIf="finalResult()!.errors && finalResult()!.errors!.length > 0" class="errors-section">
+          <div class="error-header">
+            <mat-icon>error_outline</mat-icon>
+            <h2>Erros na Submissão</h2>
+          </div>
+          <div class="errors-list">
+            <div *ngFor="let error of finalResult()!.errors" class="error-item">
+              <mat-icon class="error-icon">warning</mat-icon>
+              <div class="error-info">
+                <span class="error-message">{{ error.error }}</span>
+                <span class="error-status">{{ error.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button mat-raised-button color="primary" (click)="goBack()">Voltar aos Quizzes</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

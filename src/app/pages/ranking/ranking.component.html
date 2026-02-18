@@ -4,17 +4,90 @@
   <div class="section-header">
     <h1>
       <mat-icon>leaderboard</mat-icon>
-      Ranking Global
+      Ranking dos Alunos
     </h1>
   </div>
 
   <mat-card class="ranking-card">
     <mat-card-content>
-      <div class="coming-soon">
-        <mat-icon class="coming-icon">trending_up</mat-icon>
-        <h2>Em Breve</h2>
-        <p>O sistema de ranking está sendo desenvolvido</p>
-      </div>
+
+      @if (loadingQuizzes()) {
+        <div class="loading">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span>Carregando quizzes...</span>
+        </div>
+      } @else if (errorQuizzes()) {
+        <div class="error">{{ errorQuizzes() }}</div>
+      } @else {
+        <mat-form-field class="quiz-select" appearance="outline">
+          <mat-label>Selecione um Quiz</mat-label>
+          <mat-select
+            [ngModel]="selectedQuizId()"
+            (ngModelChange)="onQuizChange($event)"
+            aria-label="Selecione um quiz para ver o ranking"
+          >
+            @for (quiz of quizzes(); track quiz.id) {
+              <mat-option [value]="quiz.id">{{ quiz.title }} - {{ quiz.class_name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (selectedQuizId()) {
+          @if (loadingRanking()) {
+            <div class="loading">
+              <mat-spinner diameter="40"></mat-spinner>
+              <span>Carregando ranking...</span>
+            </div>
+          } @else if (errorRanking()) {
+            <div class="error">{{ errorRanking() }}</div>
+          } @else if (ranking().length === 0) {
+            <div class="empty-state">
+              <mat-icon class="empty-icon">group_off</mat-icon>
+              <h2>Nenhum aluno participou ainda</h2>
+              <p>O ranking será exibido assim que os alunos responderem este quiz.</p>
+            </div>
+          } @else {
+            <table class="ranking-table" aria-label="Ranking dos alunos">
+              <thead>
+                <tr>
+                  <th scope="col">Posição</th>
+                  <th scope="col">Aluno</th>
+                  <th scope="col">Revisão</th>
+                  <th scope="col">Pontos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (aluno of ranking(); track $index) {
+                  <tr
+                    [class.top1]="$index === 0"
+                    [class.top2]="$index === 1"
+                    [class.top3]="$index === 2"
+                  >
+                    <td>
+                      @if ($index === 0) {
+                        <mat-icon class="top-icon gold" aria-label="1º lugar">emoji_events</mat-icon>
+                      } @else if ($index === 1) {
+                        <mat-icon class="top-icon silver" aria-label="2º lugar">military_tech</mat-icon>
+                      } @else if ($index === 2) {
+                        <mat-icon class="top-icon bronze" aria-label="3º lugar">military_tech</mat-icon>
+                      } @else {
+                        {{ $index + 1 }}
+                      }
+                    </td>
+                    <td>
+                      <span class="aluno-nome">{{ aluno.aluno }}</span>
+                      <span class="aluno-email">{{ aluno.email }}</span>
+                    </td>
+                    <td>{{ aluno.revisao }}</td>
+                    <td>{{ aluno.total_score }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        }
+      }
+
     </mat-card-content>
   </mat-card>
 </div>

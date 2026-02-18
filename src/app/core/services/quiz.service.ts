@@ -1,3 +1,10 @@
+export interface RankingAluno {
+    aluno: string;
+    email: string;
+    revisao: string;
+    total_score: number;
+}
+
 export interface QuizFilter {
     title?: string;
     class_name?: string;
@@ -223,6 +230,21 @@ export class QuizService {
                 }
 
                 console.error('Join quiz error:', error);
+                return throwError(() => ({ message: errorMessage, error }));
+            })
+        );
+    }
+
+    getRanking(quizId: string) {
+        return this.http.get<RankingAluno[]>(`${this.API}/${quizId}/ranking`).pipe(
+            catchError((error: HttpErrorResponse) => {
+                let errorMessage = 'Erro ao buscar ranking.';
+                if (error.status === 0) {
+                    errorMessage = 'Não foi possível conectar ao servidor.';
+                }
+                if (error.status === 404) {
+                    errorMessage = 'Ranking não encontrado.';
+                }
                 return throwError(() => ({ message: errorMessage, error }));
             })
         );

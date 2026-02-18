@@ -68,10 +68,12 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.API}`, data).pipe(
 
       tap(response => {
-        document.cookie = `token=${response.token}; path=/;`;
-        document.cookie = `userId=${response.user.id}; path=/;`;
-        document.cookie = `role=${response.user.role}; path=/;`;
-        document.cookie = `name=${response.user.name}; path=/;`;
+        if (response?.token) {
+          document.cookie = `token=${response.token}; path=/;`;
+          document.cookie = `userId=${response.user.id}; path=/;`;
+          document.cookie = `role=${response.user.role}; path=/;`;
+          document.cookie = `name=${response.user.name}; path=/;`;
+        }
       }),
 
       catchError((error: HttpErrorResponse) => {
